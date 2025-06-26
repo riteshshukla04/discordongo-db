@@ -39,6 +39,18 @@ export interface DiscordDBConfig {
   botToken: string;
   channelId: string;
   baseURL?: string;
+  encryptionKey?: string; // Optional encryption key
+}
+
+// Encryption Types
+export interface EncryptedData {
+  data: string;
+  iv: string;
+  encrypted: true;
+}
+
+export interface EncryptionOptions {
+  algorithm?: string;
 }
 
 // Database Document Interface

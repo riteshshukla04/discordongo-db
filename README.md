@@ -1,19 +1,103 @@
-# DiscordongoDB
+# DiscordongoDB 🔐
 
-A TypeScript library that uses Discord as a database with MongoDB-like operations. Store and query data using Discord messages as your backend!
+A TypeScript library that uses Discord as a database with MongoDB-like operations, now with **optional encryption support**!
 
-## Features
+## ✨ Features
 
-- 🔥 **MongoDB-like API** - Familiar syntax for developers
-- 🚀 **Full TypeScript Support** - Complete type safety
-- 📱 **Cross-platform** - Works with Node.js, React, React Native
+- 🔐 **NEW: Optional Encryption** - Automatically encrypt/decrypt your data with AES-256
+- 🚀 **MongoDB-like API** - Familiar syntax for developers
 - 🔍 **Advanced Filtering** - Support for complex queries with operators
 - 📊 **Sorting & Pagination** - Efficient data retrieval
 - 🔄 **CRUD Operations** - Create, Read, Update, Delete
 - ⚡ **Caching** - Built-in caching for better performance
 - 🛡️ **Error Handling** - Comprehensive error types
+- 🌐 **Cross-platform** - Works with Node.js, React, React Native
 
-## Installation
+## 🔐 Encryption
+
+DiscordDB now supports optional AES-256 encryption to secure your sensitive data:
+
+### Basic Usage (No Encryption)
+
+```typescript
+import { DiscordDB } from 'discordongo-db';
+
+const db = new DiscordDB({
+  botToken: 'your-bot-token',
+  channelId: 'your-channel-id'
+});
+
+// Data stored as plain text (traditional usage)
+await db.insertOne({ name: 'Alice', email: 'alice@example.com' });
+```
+
+### With Encryption Enabled
+
+```typescript
+import { DiscordDB } from 'discordongo-db';
+
+const db = new DiscordDB({
+  botToken: 'your-bot-token',
+  channelId: 'your-channel-id',
+  encryptionKey: 'your-secret-encryption-key' // This enables encryption
+});
+
+// Data automatically encrypted before storage
+await db.insertOne({ 
+  ssn: '123-45-6789',
+  creditCard: '4111-1111-1111-1111',
+  personalData: 'highly confidential'
+});
+
+// Data automatically decrypted when retrieved
+const user = await db.findOne({ ssn: '123-45-6789' });
+console.log(user.personalData); // 'highly confidential'
+```
+
+### Environment-Based Configuration
+
+```typescript
+const db = new DiscordDB({
+  botToken: process.env.DISCORD_BOT_TOKEN!,
+  channelId: process.env.DISCORD_CHANNEL_ID!,
+  encryptionKey: process.env.ENCRYPTION_KEY // Optional - encryption only if set
+});
+
+// Check if encryption is enabled
+if (db.isEncryptionEnabled()) {
+  console.log('🔒 Data will be encrypted');
+} else {
+  console.log('📝 Using plain text storage');
+}
+```
+
+### Key Benefits of Encryption
+
+- **🔒 Automatic**: Encryption/decryption happens transparently
+- **🔄 Backward Compatible**: Can read existing non-encrypted data
+- **⚡ Performance**: Minimal overhead with intelligent caching
+- **🛡️ Security**: AES-256-CBC encryption with random IVs
+- **🔧 Optional**: Easy to enable/disable with configuration
+
+### Advanced Encryption Usage
+
+```typescript
+// Import encryption utilities for manual use
+import { encrypt, decrypt, EncryptionService } from 'discordongo-db';
+
+// Manual encryption
+const encrypted = encrypt('sensitive data', 'my-key');
+const decrypted = decrypt(encrypted, 'my-key');
+
+// Custom encryption service
+const encryptionService = new EncryptionService('my-key', {
+  algorithm: 'aes-256-cbc'
+});
+```
+
+## 📚 Quick Start
+
+### Installation
 
 ```bash
 yarn add discordongo-db
@@ -21,7 +105,13 @@ yarn add discordongo-db
 npm install discordongo-db
 ```
 
-## Quick Start
+### Setup
+
+1. Create a Discord bot and get your bot token
+2. Create a Discord channel and get the channel ID
+3. Add the bot to your server with message permissions
+
+### Basic Example
 
 ```typescript
 import { DiscordDB } from 'discordongo-db';
@@ -33,7 +123,8 @@ dotenv.config();
 // Initialize the database
 const db = new DiscordDB({
   botToken: process.env.DISCORD_BOT_TOKEN!,
-  channelId: process.env.DISCORD_CHANNEL_ID!
+  channelId: process.env.DISCORD_CHANNEL_ID!,
+  encryptionKey: process.env.ENCRYPTION_KEY
 });
 
 // Insert a document
@@ -56,172 +147,27 @@ await db.updateOne(
 await db.deleteOne({ email: 'john@example.com' });
 ```
 
-## Setup
+## 🔧 API Reference
 
-### 1. Create a Discord Bot
-
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Create a new Application
-3. Go to "Bot" section and create a bot
-4. Copy the bot token
-5. Invite the bot to your server with "Send Messages", "Read Message History", and "Manage Messages" permissions
-
-### 2. Get Channel ID
-
-1. Enable Developer Mode in Discord
-2. Right-click on the channel you want to use
-3. Copy the Channel ID
-
-### 3. Environment Variables
-
-Create a `.env` file in your project root:
-
-```bash
-# Copy from .env.example
-cp .env.example .env
-```
-
-Then fill in your Discord credentials:
-
-```env
-DISCORD_BOT_TOKEN=your_discord_bot_token_here
-DISCORD_CHANNEL_ID=your_discord_channel_id_here
-```
-
-⚠️ **Never commit your `.env` file to version control!** Add it to your `.gitignore`.
-
-## API Reference
-
-### Constructor
+### Configuration Options
 
 ```typescript
-const db = new DiscordDB({
-  botToken: string;      // Your Discord bot token (use process.env.DISCORD_BOT_TOKEN)
-  channelId: string;     // Channel ID to use as database (use process.env.DISCORD_CHANNEL_ID)
-  baseURL?: string;      // Optional: Discord API base URL
-});
-```
-
-### Insert Operations
-
-#### insertOne(document)
-
-```typescript
-interface User {
-  name: string;
-  email: string;
-  age: number;
+interface DiscordDBConfig {
+  botToken: string;           // Your Discord bot token
+  channelId: string;          // Discord channel ID for storage
+  baseURL?: string;           // Custom Discord API URL (optional)
+  encryptionKey?: string;     // Encryption key (optional, enables encryption)
 }
-
-const result = await db.insertOne({
-  name: 'Alice',
-  email: 'alice@example.com',
-  age: 25
-});
-
-console.log(result.insertedId); // Generated document ID
 ```
 
-### Find Operations
+### Core Methods
 
-#### find(filter, options)
-
-```typescript
-// Find all users
-const allUsers = await db.find<User>();
-
-// Find with filter
-const adults = await db.find<User>({ age: { $gte: 18 } });
-
-// Find with options
-const result = await db.find<User>(
-  { age: { $gte: 18 } },
-  {
-    sort: { age: -1 },
-    limit: 10,
-    skip: 0,
-    projection: { name: 1, email: 1 }
-  }
-);
-```
-
-#### findOne(filter)
-
-```typescript
-const user = await db.findOne<User>({ email: 'alice@example.com' });
-```
-
-### Update Operations
-
-#### updateOne(filter, update)
-
-```typescript
-// Using $set operator
-await db.updateOne(
-  { email: 'alice@example.com' },
-  { $set: { age: 26 } }
-);
-
-// Using $inc operator
-await db.updateOne(
-  { email: 'alice@example.com' },
-  { $inc: { age: 1 } }
-);
-
-// Direct object update
-await db.updateOne(
-  { email: 'alice@example.com' },
-  { age: 27, name: 'Alice Smith' }
-);
-```
-
-### Delete Operations
-
-#### deleteOne(filter)
-
-```typescript
-await db.deleteOne({ email: 'alice@example.com' });
-```
-
-## Examples
-
-### Basic Usage
-
-See the complete example in [`examples/basic-usage.ts`](./examples/basic-usage.ts) for a comprehensive demonstration of all DiscordDB features.
-
-### Express.js REST API
-
-DiscordDB works perfectly as a backend for web applications. Check out the full Express.js example in [`examples/express-app.ts`](./examples/express-app.ts).
-
-The Express example includes:
-- **User Management API** - CRUD operations for users
-- **Task Management API** - Todo-like task system  
-- **Statistics Endpoint** - Get counts and completion rates
-- **Full TypeScript Support** - Complete type safety
-- **Error Handling** - Comprehensive error responses
-- **Environment Variables** - Secure credential management
-
-#### Running the Express Example
-
-```bash
-cd examples
-npm install
-cp ../.env.example .env  # Fill in your Discord credentials
-npm run dev  # Start development server
-```
-
-API endpoints will be available at:
-- `GET /health` - Health check
-- `GET /api/users` - List users  
-- `POST /api/users` - Create user
-- `GET /api/users/:id` - Get user by ID
-- `PUT /api/users/:id` - Update user
-- `DELETE /api/users/:id` - Delete user
-- `GET /api/tasks` - List tasks
-- `POST /api/tasks` - Create task
-- `PUT /api/tasks/:id` - Update task  
-- `DELETE /api/tasks/:id` - Delete task
-- `GET /api/stats` - Get statistics
+- `insertOne(document)` - Insert a single document
+- `find(filter, options)` - Find documents with filtering
+- `findOne(filter)` - Find a single document
+- `updateOne(filter, update)` - Update a single document
+- `deleteOne(filter)` - Delete a single document
+- `isEncryptionEnabled()` - Check if encryption is enabled
 
 ## Query Operators
 
@@ -313,191 +259,45 @@ API endpoints will be available at:
 { $addToSet: { tags: 'unique-tag' } }
 ```
 
-## Usage Examples
+## Examples
 
-### Express.js Integration
+### Basic Usage
 
-```typescript
-import express from 'express';
-import { DiscordDB } from 'discordongo-db';
+See the complete example in [`examples/basic-usage.ts`](./examples/basic-usage.ts) for a comprehensive demonstration of all DiscordDB features.
 
-const app = express();
-const db = new DiscordDB({
-  botToken: process.env.DISCORD_BOT_TOKEN!,
-  channelId: process.env.DISCORD_CHANNEL_ID!
-});
+### Express.js REST API
 
-app.use(express.json());
+DiscordDB works perfectly as a backend for web applications. Check out the full Express.js example in [`examples/express-app.ts`](./examples/express-app.ts).
 
-// Get all users
-app.get('/users', async (req, res) => {
-  try {
-    const users = await db.find();
-    res.json(users.documents);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+The Express example includes:
+- **User Management API** - CRUD operations for users
+- **Task Management API** - Todo-like task system  
+- **Statistics Endpoint** - Get counts and completion rates
+- **Full TypeScript Support** - Complete type safety
+- **Error Handling** - Comprehensive error responses
+- **Environment Variables** - Secure credential management
 
-// Create user
-app.post('/users', async (req, res) => {
-  try {
-    const result = await db.insertOne(req.body);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+#### Running the Express Example
 
-// Update user
-app.put('/users/:id', async (req, res) => {
-  try {
-    const result = await db.updateOne(
-      { _id: req.params.id },
-      { $set: req.body }
-    );
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Delete user
-app.delete('/users/:id', async (req, res) => {
-  try {
-    const result = await db.deleteOne({ _id: req.params.id });
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.listen(3000, () => {
-  console.log('Server running on port 3000');
-});
+```bash
+cd examples
+npm install
+cp ../.env.example .env  # Fill in your Discord credentials
+npm run dev  # Start development server
 ```
 
-### React Usage
-
-```typescript
-import React, { useState, useEffect } from 'react';
-import { DiscordDB } from 'discordongo-db';
-
-const db = new DiscordDB({
-  botToken: process.env.REACT_APP_DISCORD_BOT_TOKEN!,
-  channelId: process.env.REACT_APP_DISCORD_CHANNEL_ID!
-});
-
-interface User {
-  _id?: string;
-  name: string;
-  email: string;
-}
-
-function UserList() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
-    try {
-      const result = await db.find<User>();
-      setUsers(result.documents);
-    } catch (error) {
-      console.error('Error loading users:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addUser = async (userData: Omit<User, '_id'>) => {
-    try {
-      await db.insertOne(userData);
-      await loadUsers(); // Refresh the list
-    } catch (error) {
-      console.error('Error adding user:', error);
-    }
-  };
-
-  const deleteUser = async (id: string) => {
-    try {
-      await db.deleteOne({ _id: id });
-      await loadUsers(); // Refresh the list
-    } catch (error) {
-      console.error('Error deleting user:', error);
-    }
-  };
-
-  if (loading) return <div>Loading...</div>;
-
-  return (
-    <div>
-      <h2>Users</h2>
-      {users.map(user => (
-        <div key={user._id}>
-          <span>{user.name} ({user.email})</span>
-          <button onClick={() => deleteUser(user._id!)}>
-            Delete
-          </button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export default UserList;
-```
-
-### React Native Usage
-
-```typescript
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
-import { DiscordDB } from 'discordongo-db';
-
-const db = new DiscordDB({
-  botToken: 'YOUR_BOT_TOKEN',
-  channelId: 'YOUR_CHANNEL_ID'
-});
-
-export default function App() {
-  const [users, setUsers] = useState([]);
-
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
-    try {
-      const result = await db.find();
-      setUsers(result.documents);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const renderUser = ({ item }) => (
-    <View style={{ padding: 10, borderBottomWidth: 1 }}>
-      <Text>{item.name}</Text>
-      <Text>{item.email}</Text>
-    </View>
-  );
-
-  return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 24, marginBottom: 20 }}>Users</Text>
-      <FlatList
-        data={users}
-        renderItem={renderUser}
-        keyExtractor={(item) => item._id}
-      />
-    </View>
-  );
-}
-```
+API endpoints will be available at:
+- `GET /health` - Health check
+- `GET /api/users` - List users  
+- `POST /api/users` - Create user
+- `GET /api/users/:id` - Get user by ID
+- `PUT /api/users/:id` - Update user
+- `DELETE /api/users/:id` - Delete user
+- `GET /api/tasks` - List tasks
+- `POST /api/tasks` - Create task
+- `PUT /api/tasks/:id` - Update task  
+- `DELETE /api/tasks/:id` - Delete task
+- `GET /api/stats` - Get statistics
 
 ## Error Handling
 

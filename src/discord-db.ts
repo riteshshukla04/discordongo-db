@@ -1,6 +1,7 @@
 import { DiscordClient } from './client/discord-client';
 import { matchesFilter, sortDocuments, applyProjection, applyPagination } from './utils/filters';
 import { applyUpdate, validateUpdate } from './utils/updates';
+import { EncryptionService } from './utils/encryption';
 import {
   DiscordDBConfig,
   DBDocument,
@@ -17,18 +18,24 @@ import {
 
 export class DiscordDB {
   private client: DiscordClient;
+  private encryptionService?: EncryptionService;
   private cache: Map<string, DBDocument> = new Map();
   private lastCacheUpdate = 0;
   private cacheTimeout = 30000; // 30 seconds
 
   constructor(config: DiscordDBConfig) {
     this.client = new DiscordClient(config);
+    
+    // Initialize encryption service if encryption key is provided
+    if (config.encryptionKey) {
+      this.encryptionService = new EncryptionService(config.encryptionKey);
+    }
   }
 
   async insertOne(document: Partial<DBDocument>): Promise<InsertResult> {
     try {
       const docToInsert = this.prepareDocumentForInsert(document);
-      const content = JSON.stringify(docToInsert);
+      const content = this.serializeDocument(docToInsert);
       
       if (content.length > 2000) {
         throw new ValidationError('Document too large. Discord messages are limited to 2000 characters.');
@@ -98,7 +105,7 @@ export class DiscordDB {
       }
 
       const updatedDoc = applyUpdate(document, update);
-      const content = JSON.stringify(updatedDoc);
+      const content = this.serializeDocument(updatedDoc);
       
       if (content.length > 2000) {
         throw new ValidationError('Updated document too large.');
@@ -145,7 +152,7 @@ export class DiscordDB {
       for (const message of messages) {
         try {
           if (message.content.trim()) {
-            const doc = JSON.parse(message.content) as DBDocument;
+            const doc = this.deserializeDocument(message.content);
             doc._messageId = message.id;
             doc._timestamp = message.timestamp;
             
@@ -172,6 +179,46 @@ export class DiscordDB {
       doc._id = Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
     return doc;
+  }
+
+  /**
+   * Serialize document for storage (with optional encryption)
+   */
+  private serializeDocument(document: DBDocument): string {
+    const jsonString = JSON.stringify(document);
+    
+    if (this.encryptionService) {
+      const encrypted = this.encryptionService.encrypt(jsonString);
+      return JSON.stringify(encrypted);
+    }
+    
+    return jsonString;
+  }
+
+  /**
+   * Deserialize document from storage (with optional decryption)
+   */
+  private deserializeDocument(content: string): DBDocument {
+    const parsed = JSON.parse(content);
+    
+    // Check if the content is encrypted
+    if (EncryptionService.isEncrypted(parsed)) {
+      if (!this.encryptionService) {
+        throw new DiscordDBError('Encrypted data found but no encryption key provided');
+      }
+      
+      const decryptedContent = this.encryptionService.decrypt(parsed);
+      return JSON.parse(decryptedContent) as DBDocument;
+    }
+    
+    return parsed as DBDocument;
+  }
+
+  /**
+   * Check if encryption is enabled
+   */
+  isEncryptionEnabled(): boolean {
+    return !!this.encryptionService;
   }
 
   private handleError(error: unknown): Error {
@@ -213,7 +260,7 @@ export class DiscordDB {
       for (const doc of matchingDocs) {
         try {
           const updatedDoc = applyUpdate(doc, update);
-          const content = JSON.stringify(updatedDoc);
+          const content = this.serializeDocument(updatedDoc);
           
           if (content.length > 2000) {
             console.error(`Skipping update for document ${doc._id}: too large after update`);

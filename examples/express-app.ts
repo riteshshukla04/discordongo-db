@@ -25,7 +25,8 @@ if (!process.env.DISCORD_BOT_TOKEN || !process.env.DISCORD_CHANNEL_ID) {
 // Initialize DiscordDB
 const db = new DiscordDB({
   botToken: process.env.DISCORD_BOT_TOKEN,
-  channelId: process.env.DISCORD_CHANNEL_ID
+  channelId: process.env.DISCORD_CHANNEL_ID,
+  encryptionKey: 'my-super-secret-encryption-key-2024'
 });
 
 // Types

@@ -17,7 +17,9 @@ export type {
   UpdateResult,
   DeleteResult,
   FindResult,
-  DiscordMessage
+  DiscordMessage,
+  EncryptedData,
+  EncryptionOptions
 } from './types';
 
 // Error exports
@@ -31,6 +33,9 @@ export {
 // Utility exports (for advanced usage)
 export { matchesFilter, sortDocuments, applyProjection, applyPagination } from './utils/filters';
 export { applyUpdate, validateUpdate } from './utils/updates';
+
+// Encryption exports
+export { EncryptionService, encrypt, decrypt } from './utils/encryption';
 
 // Client export (for advanced usage)
 export { DiscordClient } from './client/discord-client';
