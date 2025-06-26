@@ -1,0 +1,21 @@
+{
+  "git": {
+    "commitMessage": "chore: release v${version}",
+    "tagName": "v${version}",
+    "push": true,
+    "requireCleanWorkingDir": true
+  },
+  "npm": {
+    "publish": true,
+    "publishPath": "."
+  },
+  "github": {
+    "release": true,
+    "releaseName": "Release v${version}",
+    "assets": ["dist/**/*"]
+  },
+  "hooks": {
+    "before:init": ["yarn build", "yarn test"],
+    "after:release": "echo Successfully released ${name} v${version}"
+  }
+} 

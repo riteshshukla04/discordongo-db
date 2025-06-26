@@ -1,0 +1,72 @@
+{
+  "name": "discordongo-db",
+  "version": "1.0.0",
+  "description": "A TypeScript library that uses Discord as a database with MongoDB-like operations",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "test:real": "node test-real-discord.js",
+    "test:basic": "node test-discorddb.js",
+    "setup": "node setup-env.js",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "prepublishOnly": "yarn build",
+    "release": "release-it",
+    "release:patch": "release-it patch",
+    "release:minor": "release-it minor",
+    "release:major": "release-it major"
+  },
+  "keywords": [
+    "discord",
+    "database",
+    "typescript",
+    "crud",
+    "mongodb",
+    "express",
+    "react",
+    "react-native",
+    "discordongo"
+  ],
+  "author": "Ritesh Shukla",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "dotenv": "^16.5.0",
+    "eslint": "^8.49.0",
+    "jest": "^29.7.0",
+    "release-it": "^16.2.1",
+    "rollup": "^3.29.0",
+    "rollup-plugin-typescript2": "^0.35.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "tsx": "^4.20.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/riteshshukla04/discordongo-db.git"
+  },
+  "bugs": {
+    "url": "https://github.com/riteshshukla04/discordongo-db/issues"
+  },
+  "homepage": "https://github.com/riteshshukla04/discordongo-db#readme"
+}
