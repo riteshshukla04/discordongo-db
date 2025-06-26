@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { DiscordDB } from '../dist/index.esm.js';
+import { DiscordDB } from 'discordongo-db';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -299,10 +299,10 @@ app.delete('/api/tasks/:id', async (req, res) => {
 // Statistics endpoint
 app.get('/api/stats', async (req, res) => {
   try {
-    const totalUsers = await db.countDocuments<User>({});
-    const totalTasks = await db.countDocuments<Task>({});
-    const completedTasks = await db.countDocuments<Task>({ completed: true });
-    const pendingTasks = await db.countDocuments<Task>({ completed: false });
+    const totalUsers = await db.countDocuments({});
+    const totalTasks = await db.countDocuments({});
+    const completedTasks = await db.countDocuments({ completed: true });
+    const pendingTasks = await db.countDocuments({ completed: false });
 
     res.json({
       users: {
