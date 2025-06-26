@@ -1,6 +1,6 @@
 {
   "name": "discordongo-db",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A TypeScript library that uses Discord as a database with MongoDB-like operations",
   "type": "module",
   "main": "dist/index.js",
